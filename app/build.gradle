@@ -40,7 +40,7 @@ dependencies {
     //Dependency Injection
     api "com.google.dagger:dagger:$rootProject.dagger"
     kapt "com.google.dagger:dagger-compiler:$rootProject.dagger"
-    api "com.google.dagger:dagger-android:$rootProject.dagger"
+    api "com.google.dagger:dagger-android-support:$rootProject.dagger"
     kapt "com.google.dagger:dagger-android-processor:$rootProject.dagger"
 
     //Groupie
@@ -69,4 +69,6 @@ dependencies {
     //Support Libraries
     implementation "androidx.recyclerview:recyclerview:$rootProject.supportVersion"
     implementation "androidx.cardview:cardview:$rootProject.supportVersion"
+
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
 }
