@@ -2,6 +2,7 @@ package com.fedetto.reddit.di
 
 import android.app.Application
 import com.fedetto.reddit.RedditApplication
+import com.fedetto.reddit.di.factory.FactoryModule
 import com.fedetto.reddit.di.modules.ActivityBindingModule
 import com.fedetto.reddit.di.modules.AppModule
 import com.fedetto.reddit.di.scopes.AppScope
@@ -14,7 +15,8 @@ import dagger.android.AndroidInjector
     modules = [
         AndroidInjectionModule::class,
         AppModule::class,
-        ActivityBindingModule::class
+        ActivityBindingModule::class,
+        FactoryModule::class
     ]
 )
 @AppScope
