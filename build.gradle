@@ -62,5 +62,9 @@ ext {
     rxAndroidVersion = "2.1.1"
 
 
+    //Support libraries
+    supportVersion  = "1.0.0"
+
+
 
 }
