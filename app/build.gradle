@@ -1,0 +1,66 @@
+apply plugin: 'com.android.application'
+
+apply plugin: 'kotlin-android'
+
+apply plugin: 'kotlin-android-extensions'
+
+apply plugin: 'kotlin-kapt'
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion "29.0.2"
+    defaultConfig {
+        applicationId "com.fedetto.reddit"
+        minSdkVersion 21
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.core:core-ktx:1.0.2'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation "androidx.test:runner:$rootProject.testRunner"
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
+
+
+
+    //Dependency Injection
+    api "com.google.dagger:dagger:$rootProject.dagger"
+    kapt "com.google.dagger:dagger-compiler:$rootProject.dagger"
+    api "com.google.dagger:dagger-android:$rootProject.dagger"
+    kapt "com.google.dagger:dagger-android-processor:$rootProject.dagger"
+
+    //Groupie
+    implementation "com.xwray:groupie:$rootProject.groupieVersion"
+    implementation "com.xwray:groupie-kotlin-android-extensions:$rootProject.groupieVersion"
+
+    //Network
+    implementation "com.squareup.retrofit2:retrofit:$rootProject.retrofitVersion"
+    implementation "com.google.code.gson:gson:$rootProject.gsonVersion"
+
+
+    //Architecture Componentes
+    implementation "androidx.lifecycle:lifecycle-extensions:$rootProject.archVersion"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$rootProject.archVersion"
+    implementation "androidx.lifecycle:lifecycle-runtime:$rootProject.archVersion"
+    implementation "android.arch.lifecycle:common-java8:$rootProject.archVersion"
+
+
+    //RxJava
+    implementation "io.reactivex.rxjava2:rxjava:$rootProject.rxJavaVersion"
+    implementation "io.reactivex.rxjava2:rxandroid:$rootProject.rxAndroidVersion"
+    implementation "io.reactivex.rxjava2:rxkotlin:$rootProject.rxKotlinVersion"
+}
