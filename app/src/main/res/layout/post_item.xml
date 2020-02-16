@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:elevation="8dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <TextView
+            android:id="@+id/textViewTitle"
+            style="@style/Headline"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_small"
+            android:layout_marginEnd="@dimen/spacing_small"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Very very very Very very very Very very very Very very very Very very very Very very very Very very very large title" />
+
+
+        <ImageView
+            android:id="@+id/imageVieThumbnail"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginTop="@dimen/spacing_small"
+            app:layout_constraintStart_toStartOf="@+id/textViewTitle"
+            app:layout_constraintTop_toBottomOf="@+id/textViewTitle"
+            tools:background="@color/colorPrimary" />
+
+
+        <TextView
+            android:id="@+id/textViewAuthor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_normal"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@+id/imageVieThumbnail"
+            app:layout_constraintTop_toTopOf="@+id/imageVieThumbnail"
+            tools:text="Rick" />
+
+
+        <TextView
+            android:id="@+id/textViewTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="italic"
+            app:layout_constraintStart_toStartOf="@+id/textViewAuthor"
+            app:layout_constraintTop_toBottomOf="@+id/textViewAuthor"
+            tools:text="four hours ago" />
+
+
+        <TextView
+            android:id="@+id/textViewCommentsNumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_small"
+            android:background="@color/light_red"
+            android:padding="4dp"
+            android:textColor="@color/white"
+            app:layout_constraintStart_toStartOf="@id/textViewAuthor"
+            app:layout_constraintTop_toBottomOf="@+id/textViewTime"
+            tools:text="5 comments" />
+
+
+        <TextView
+            android:id="@+id/textViewReadStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_small"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintStart_toEndOf="@+id/textViewCommentsNumber"
+            app:layout_constraintTop_toTopOf="@id/textViewCommentsNumber"
+            tools:text="Read" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</androidx.cardview.widget.CardView>
