@@ -66,5 +66,9 @@ ext {
     supportVersion  = "1.0.0"
 
 
+    //Glide
+    glideVersion = "4.11.0"
+
+
 
 }

@@ -1,5 +1,7 @@
 package com.fedetto.reddit.views
 
+import android.text.format.DateUtils
+import com.bumptech.glide.Glide
 import com.fedetto.reddit.R
 import com.fedetto.reddit.models.Post
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
@@ -17,12 +19,16 @@ class PostItem(val post: Post) : Item() {
         viewHolder.apply {
             textViewTitle.text = info.title
             textViewAuthor.text = info.author
-            textViewTime.text = info.created_utc.toString()
             textViewCommentsNumber.text = "${info.num_comments} comments"
 
-            //TODO read status
-            //format time
+            Glide.with(imageVieThumbnail)
+                .load(info.thumbnail)
+                .centerCrop()
+                .placeholder(R.drawable.thumbnail)
+                .into(imageVieThumbnail)
 
+            //TODO read status
+            textViewTime.text = DateUtils.getRelativeTimeSpanString(info.created_utc * 1000)
         }
     }
 }

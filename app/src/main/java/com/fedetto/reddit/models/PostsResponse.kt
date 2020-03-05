@@ -47,7 +47,7 @@ data class PostInfo(
     val content_categories: Any,
     val contest_mode: Boolean,
     val created: Int,
-    val created_utc: Int,
+    val created_utc: Long,
     val discussion_type: Any,
     val distinguished: Any,
     val domain: String,

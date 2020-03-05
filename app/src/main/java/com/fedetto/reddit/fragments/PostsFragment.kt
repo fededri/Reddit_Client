@@ -11,9 +11,11 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.fedetto.reddit.R
 import com.fedetto.reddit.di.factory.ViewModelFactory
 import com.fedetto.reddit.models.RedditState
+import com.fedetto.reddit.utils.EndlessRecyclerViewScrollListener
 import com.fedetto.reddit.viewmodels.RedditViewModel
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
@@ -25,6 +27,7 @@ class PostsFragment : Fragment() {
     private val groupAdapter by lazy { GroupAdapter<GroupieViewHolder>() }
     private val recyclerView by lazy { view?.findViewById<RecyclerView>(R.id.recyclerView) }
     private val progressBar by lazy { view?.findViewById<ProgressBar>(R.id.progressBar) }
+    private val pullToRefresh by lazy { view?.findViewById<SwipeRefreshLayout>(R.id.pullToRefresh) }
 
 
     lateinit var viewModel: RedditViewModel
@@ -37,7 +40,8 @@ class PostsFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_posts, container, false)
 
-        viewModel = ViewModelProviders.of(requireActivity(), viewModelFactory)[RedditViewModel::class.java]
+        viewModel =
+            ViewModelProviders.of(requireActivity(), viewModelFactory)[RedditViewModel::class.java]
         viewModel.observeState().observe(requireActivity(), Observer {
             renderState(it)
         })
@@ -61,8 +65,22 @@ class PostsFragment : Fragment() {
 
     private fun initViews() {
         recyclerView?.adapter = groupAdapter
-        recyclerView?.layoutManager =
+        val layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        recyclerView?.layoutManager = layoutManager
+
+
+        recyclerView?.addOnScrollListener(object :
+            EndlessRecyclerViewScrollListener(layoutManager) {
+            override fun onLoadMore(currentPage: Int, totalItemCount: Int) {
+                viewModel.loadMore()
+            }
+        })
+
+        pullToRefresh?.setOnRefreshListener {
+            viewModel.refresh()
+        }
+
     }
 
 
@@ -72,6 +90,7 @@ class PostsFragment : Fragment() {
         }
 
         progressBar?.visibility = if (state.loading) View.VISIBLE else View.GONE
+        pullToRefresh?.isRefreshing = state.loading && state.wasFirstRequestCalled
     }
 
     companion object {
