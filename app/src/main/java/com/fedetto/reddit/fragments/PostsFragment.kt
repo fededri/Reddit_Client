@@ -8,9 +8,11 @@ import android.view.ViewGroup
 import android.widget.ProgressBar
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.fedetto.reddit.R
+import com.fedetto.reddit.di.factory.ViewModelFactory
 import com.fedetto.reddit.models.RedditState
 import com.fedetto.reddit.viewmodels.RedditViewModel
 import com.xwray.groupie.GroupAdapter
@@ -24,14 +26,18 @@ class PostsFragment : Fragment() {
     private val recyclerView by lazy { view?.findViewById<RecyclerView>(R.id.recyclerView) }
     private val progressBar by lazy { view?.findViewById<ProgressBar>(R.id.progressBar) }
 
-    @Inject
+
     lateinit var viewModel: RedditViewModel
+
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_posts, container, false)
 
+        viewModel = ViewModelProviders.of(requireActivity(), viewModelFactory)[RedditViewModel::class.java]
         viewModel.observeState().observe(requireActivity(), Observer {
             renderState(it)
         })

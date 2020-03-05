@@ -1,26 +1,22 @@
 package com.fedetto.reddit.di.modules
 
-import com.fedetto.reddit.controllers.RedditController
-import com.fedetto.reddit.di.scopes.ActivityScope
+import androidx.lifecycle.ViewModel
 import com.fedetto.reddit.di.scopes.ViewModelKey
 import com.fedetto.reddit.viewmodels.RedditViewModel
+import dagger.Binds
 import dagger.Module
-import dagger.Provides
 import dagger.multibindings.IntoMap
 
 @Module(
     includes = [
         FragmentBindingModule::class,
         RedditApiModule::class
-        ]
+    ]
 )
-class AppModule {
+abstract class AppModule {
 
-    @Provides
-    @ActivityScope
+    @Binds
     @IntoMap
     @ViewModelKey(RedditViewModel::class)
-    fun bindViewModel(controller: RedditController): RedditViewModel {
-        return RedditViewModel(controller)
-    }
+    abstract fun bindViewModel(viewModel: RedditViewModel): ViewModel
 }

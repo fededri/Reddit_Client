@@ -17,7 +17,9 @@ import javax.inject.Inject
 
 class RedditViewModel @Inject constructor(val controller: RedditController) : ViewModel() {
 
-    private val state = MutableLiveData<RedditState>()
+    private val state = MutableLiveData<RedditState>().apply {
+        value = RedditState()
+    }
     private val compositeDisposable by lazy { CompositeDisposable() }
 
     fun observeState(): LiveData<RedditState> {
@@ -26,41 +28,54 @@ class RedditViewModel @Inject constructor(val controller: RedditController) : Vi
 
 
     fun initialize() {
-        state.value = RedditState()
-        showLoading()
-        compositeDisposable += controller.getToken()
-            .flatMap {
-                Globals.ACCESS_TOKEN = it.accessToken
-                controller.getPosts(50)
-            }
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(this::onSuccessResponse, this::onErrorResponse)
+        if (shouldInitialize()) {
+            emitNewState(getState().copy(isWaitingServiceResponse = true, loading = true))
+            compositeDisposable += controller.getToken()
+                .flatMap {
+                    Globals.ACCESS_TOKEN = it.accessToken
+                    controller.getPosts(50)
+                }
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnEvent { t1, t2 ->
+                    emitNewState(
+                        getState().copy(
+                            loading = false,
+                            isWaitingServiceResponse = false,
+                            wasFirstRequestCalled = true
+                        )
+                    )
+                }
+                .subscribe(this::onSuccessResponse, this::onErrorResponse)
+        }
+    }
+
+    private fun shouldInitialize(): Boolean {
+        return state.value?.isWaitingServiceResponse == false && state.value?.wasFirstRequestCalled == false
     }
 
 
     private fun onSuccessResponse(posts: List<Post>) {
-        hideLoading()
         val items = posts.map {
             PostItem(it)
         }
-        state.postValue(state.value?.copy(posts = items))
+        emitNewStateAsync(getState().copy(posts = items))
     }
 
     private fun onErrorResponse(throwable: Throwable) {
         //show error message
-        hideLoading()
         throwable.printStackTrace()
     }
 
     @MainThread
-    private fun showLoading() {
-        state.value = state.value?.copy(loading = true)
+    private fun emitNewState(newState: RedditState) {
+        state.value = newState
     }
 
-    @MainThread
-    private fun hideLoading() {
-        state.value = state.value?.copy(loading = false)
+    private fun emitNewStateAsync(newState: RedditState) {
+        state.postValue(newState)
     }
+
+    private fun getState() = state.value ?: RedditState()
 
 
     override fun onCleared() {
