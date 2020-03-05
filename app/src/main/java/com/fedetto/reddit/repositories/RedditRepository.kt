@@ -1,6 +1,7 @@
 package com.fedetto.reddit.repositories
 
 import com.fedetto.reddit.models.AuthTokenResponse
+import com.fedetto.reddit.models.PostsResponse
 import com.fedetto.reddit.network.AuthService
 import com.fedetto.reddit.network.RedditService
 import io.reactivex.Single
@@ -14,7 +15,7 @@ class RedditRepository @Inject constructor(
     private val authService: AuthService
 ) {
 
-    fun getPosts(limit: Int, after: String? = null): Single<Any> {
+    fun getPosts(limit: Int, after: String? = null): Single<PostsResponse> {
         return redditService.getTopPosts(limit, after = after)
     }
 

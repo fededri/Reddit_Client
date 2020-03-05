@@ -1,12 +1,15 @@
 package com.fedetto.reddit.viewmodels
 
 import android.util.Log
+import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.fedetto.reddit.Globals
 import com.fedetto.reddit.controllers.RedditController
+import com.fedetto.reddit.models.Post
 import com.fedetto.reddit.models.RedditState
+import com.fedetto.reddit.views.PostItem
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
@@ -23,15 +26,40 @@ class RedditViewModel @Inject constructor(val controller: RedditController) : Vi
 
 
     fun initialize() {
+        state.value = RedditState()
+        showLoading()
         compositeDisposable += controller.getToken()
             .flatMap {
                 Globals.ACCESS_TOKEN = it.accessToken
-                controller.getPosts(10)
+                controller.getPosts(50)
             }
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                //TODO paint top posts
-            }, Throwable::printStackTrace)
+            .subscribe(this::onSuccessResponse, this::onErrorResponse)
+    }
+
+
+    private fun onSuccessResponse(posts: List<Post>) {
+        hideLoading()
+        val items = posts.map {
+            PostItem(it)
+        }
+        state.postValue(state.value?.copy(posts = items))
+    }
+
+    private fun onErrorResponse(throwable: Throwable) {
+        //show error message
+        hideLoading()
+        throwable.printStackTrace()
+    }
+
+    @MainThread
+    private fun showLoading() {
+        state.value = state.value?.copy(loading = true)
+    }
+
+    @MainThread
+    private fun hideLoading() {
+        state.value = state.value?.copy(loading = false)
     }
 
 

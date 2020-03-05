@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ProgressBar
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -21,6 +22,7 @@ class PostsFragment : Fragment() {
 
     private val groupAdapter by lazy { GroupAdapter<GroupieViewHolder>() }
     private val recyclerView by lazy { view?.findViewById<RecyclerView>(R.id.recyclerView) }
+    private val progressBar by lazy { view?.findViewById<ProgressBar>(R.id.progressBar) }
 
     @Inject
     lateinit var viewModel: RedditViewModel
@@ -62,6 +64,8 @@ class PostsFragment : Fragment() {
         state.posts?.let {
             groupAdapter.update(it)
         }
+
+        progressBar?.visibility = if (state.loading) View.VISIBLE else View.GONE
     }
 
     companion object {
