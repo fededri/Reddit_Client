@@ -8,7 +8,8 @@ import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import com.xwray.groupie.kotlinandroidextensions.Item
 import kotlinx.android.synthetic.main.post_item.*
 
-class PostItem(val post: Post) : Item() {
+class PostItem(val post: Post, val dismissListener: (post: PostItem) -> Unit) : Item() {
+
 
     override fun getLayout(): Int {
         return R.layout.post_item
@@ -26,6 +27,10 @@ class PostItem(val post: Post) : Item() {
                 .centerCrop()
                 .placeholder(R.drawable.thumbnail)
                 .into(imageVieThumbnail)
+
+            buttonDismiss.setOnClickListener {
+                dismissListener.invoke(this@PostItem)
+            }
 
             //TODO read status
             textViewTime.text = DateUtils.getRelativeTimeSpanString(info.created_utc * 1000)

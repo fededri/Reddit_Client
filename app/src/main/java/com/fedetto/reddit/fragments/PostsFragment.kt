@@ -1,10 +1,16 @@
 package com.fedetto.reddit.fragments
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.widget.Button
 import android.widget.ProgressBar
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -28,6 +34,7 @@ class PostsFragment : Fragment() {
     private val recyclerView by lazy { view?.findViewById<RecyclerView>(R.id.recyclerView) }
     private val progressBar by lazy { view?.findViewById<ProgressBar>(R.id.progressBar) }
     private val pullToRefresh by lazy { view?.findViewById<SwipeRefreshLayout>(R.id.pullToRefresh) }
+    private val buttonDismissAll by lazy { view?.findViewById<Button>(R.id.buttonDismissAll) }
 
 
     lateinit var viewModel: RedditViewModel
@@ -81,16 +88,55 @@ class PostsFragment : Fragment() {
             viewModel.refresh()
         }
 
+        buttonDismissAll?.setOnClickListener {
+            viewModel.dismissAll()
+        }
+
     }
 
 
     private fun renderState(state: RedditState) {
         state.posts?.let {
-            groupAdapter.update(it)
+            if (groupAdapter.itemCount > 0 && state.posts.isEmpty()) {
+                playDismissAnimation {
+                    recyclerView?.apply {
+                        visibility = View.INVISIBLE
+                        scaleY = 1f
+                        alpha = 1f
+                        scaleX = 1f
+                        rotation = 0f
+                    }
+                    groupAdapter.update(it)
+
+                }
+            } else {
+                recyclerView?.visibility = View.VISIBLE
+                groupAdapter.update(it)
+            }
         }
 
         progressBar?.visibility = if (state.loading) View.VISIBLE else View.GONE
-        pullToRefresh?.isRefreshing = state.loading && state.wasFirstRequestCalled
+        pullToRefresh?.isRefreshing = state.isRefreshing
+    }
+
+    private inline fun playDismissAnimation(crossinline callback: () -> Unit) {
+        val scaleY = ObjectAnimator.ofFloat(recyclerView, View.SCALE_Y, 1f, 0f)
+        val scaleX = ObjectAnimator.ofFloat(recyclerView, View.SCALE_X, 1f, 0f)
+        val rotation = ObjectAnimator.ofFloat(recyclerView, View.ROTATION, 0f, 90f)
+        val alpha = ObjectAnimator.ofFloat(recyclerView, View.ALPHA, 1f, 0f)
+
+        val set = AnimatorSet().apply {
+            interpolator = AccelerateDecelerateInterpolator()
+            duration = 1000
+            playTogether(scaleX, scaleY, rotation, alpha)
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator?) {
+                    callback.invoke()
+                }
+            })
+        }
+
+        set.start()
     }
 
     companion object {

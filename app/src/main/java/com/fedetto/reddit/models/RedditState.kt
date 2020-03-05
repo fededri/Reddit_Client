@@ -6,5 +6,6 @@ data class RedditState(
     val posts: List<Item>? = listOf(),
     val loading: Boolean = false,
     val isWaitingServiceResponse: Boolean = false,
-    val wasFirstRequestCalled: Boolean = false
+    val wasFirstRequestCalled: Boolean = false,
+    val isRefreshing : Boolean = false
 )

@@ -40,12 +40,14 @@ class RedditViewModel @Inject constructor(val controller: RedditController) : Vi
     private fun fetchPosts() {
         compositeDisposable += controller.getPosts(pageSize)
             .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
             .doOnEvent { t1, t2 ->
                 emitNewState(
                     getState().copy(
                         loading = false,
                         isWaitingServiceResponse = false,
-                        wasFirstRequestCalled = true
+                        wasFirstRequestCalled = true,
+                        isRefreshing = false
                     )
                 )
             }
@@ -60,7 +62,7 @@ class RedditViewModel @Inject constructor(val controller: RedditController) : Vi
 
     private fun onSuccessResponse(posts: List<Post>) {
         val items = posts.map {
-            PostItem(it)
+            PostItem(it, this::onDismissPostClick)
         }
         emitNewStateAsync(getState().copy(posts = items))
     }
@@ -88,6 +90,7 @@ class RedditViewModel @Inject constructor(val controller: RedditController) : Vi
     }
 
     fun refresh() {
+        getState().copy(isRefreshing = true)
         fetchPosts()
     }
 
@@ -109,7 +112,7 @@ class RedditViewModel @Inject constructor(val controller: RedditController) : Vi
 
     private fun updateNewPosts(newPosts: List<Post>) {
         val newItems = newPosts.map {
-            PostItem(it)
+            PostItem(it, this::onDismissPostClick)
         }
 
         val allItems = getState().posts?.toMutableList()?.apply {
@@ -119,6 +122,22 @@ class RedditViewModel @Inject constructor(val controller: RedditController) : Vi
             getState().copy(
                 posts = allItems
             )
+        )
+    }
+
+    private fun onDismissPostClick(item: PostItem) {
+        val currentItems = getState().posts?.toMutableList()
+        currentItems?.remove(item)
+        emitNewState(
+            getState().copy(
+                posts = currentItems
+            )
+        )
+    }
+
+    fun dismissAll() {
+        emitNewState(
+            getState().copy(posts = listOf())
         )
     }
 
