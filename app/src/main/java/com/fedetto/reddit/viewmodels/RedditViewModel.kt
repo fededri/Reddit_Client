@@ -1,39 +1,63 @@
 package com.fedetto.reddit.viewmodels
 
-import android.util.Log
 import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.fedetto.reddit.Globals
+import com.fedetto.reddit.PostBindingStrategy
 import com.fedetto.reddit.controllers.RedditController
 import com.fedetto.reddit.models.Post
 import com.fedetto.reddit.models.RedditState
+import com.fedetto.reddit.models.ViewAction
 import com.fedetto.reddit.views.PostItem
-import com.xwray.groupie.kotlinandroidextensions.Item
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.schedulers.Schedulers
+import io.reactivex.subjects.PublishSubject
 import javax.inject.Inject
 
-class RedditViewModel @Inject constructor(val controller: RedditController) : ViewModel() {
+class RedditViewModel @Inject constructor(
+    private val controller: RedditController,
+    private val bindingStrategy: PostBindingStrategy
+) : ViewModel() {
 
     private val state = MutableLiveData<RedditState>().apply {
         value = RedditState()
     }
     private val compositeDisposable by lazy { CompositeDisposable() }
     private val pageSize = 10
+    private val viewActions = PublishSubject.create<ViewAction>()
+
 
     fun observeState(): LiveData<RedditState> {
         return state
     }
 
+    fun getViewActionsObservable(): Observable<ViewAction> {
+        return viewActions.hide()
+    }
+
 
     fun initialize() {
         if (shouldInitialize()) {
+            observeViewActions()
             emitNewState(getState().copy(isWaitingServiceResponse = true, loading = true))
             fetchPosts()
+        }
+    }
+
+    private fun observeViewActions() {
+        compositeDisposable += viewActions.subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(this::processViewAction, Throwable::printStackTrace)
+    }
+
+    private fun processViewAction(action: ViewAction) {
+        when (action) {
+            is ViewAction.SelectPost -> emitNewState(getState().copy(selectedPost = action.post))
+            is ViewAction.DismissPost -> onDismissPostClick(action.post)
         }
     }
 
@@ -62,7 +86,7 @@ class RedditViewModel @Inject constructor(val controller: RedditController) : Vi
 
     private fun onSuccessResponse(posts: List<Post>) {
         val items = posts.map {
-            PostItem(it, this::onDismissPostClick)
+            PostItem(it, viewActions, bindingStrategy)
         }
         emitNewStateAsync(getState().copy(posts = items))
     }
@@ -112,7 +136,7 @@ class RedditViewModel @Inject constructor(val controller: RedditController) : Vi
 
     private fun updateNewPosts(newPosts: List<Post>) {
         val newItems = newPosts.map {
-            PostItem(it, this::onDismissPostClick)
+            PostItem(it, viewActions, bindingStrategy)
         }
 
         val allItems = getState().posts?.toMutableList()?.apply {
