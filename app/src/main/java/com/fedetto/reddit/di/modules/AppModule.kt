@@ -12,7 +12,8 @@ import dagger.multibindings.IntoMap
 @Module(
     includes = [
         FragmentBindingModule::class,
-        RedditApiModule::class
+        RedditApiModule::class,
+        RoomModule::class
     ]
 )
 abstract class AppModule {

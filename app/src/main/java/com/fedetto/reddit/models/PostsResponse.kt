@@ -2,6 +2,10 @@ package com.fedetto.reddit.models
 
 
 import android.os.Parcelable
+import androidx.room.ColumnInfo
+import androidx.room.Embedded
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 import kotlinx.android.parcel.Parcelize
 
@@ -18,8 +22,11 @@ data class Data(
     val modhash: String
 )
 
+@Entity
 @Parcelize
 data class Post(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @Embedded
     @SerializedName("data") val info: PostInfo,
     val kind: String
 ) : Parcelable
@@ -29,14 +36,11 @@ data class PostInfo(
     val allow_live_comments: Boolean,
     val archived: Boolean,
     val author: String,
-
     val author_flair_type: String,
     val author_fullname: String,
     val author_patreon_flair: Boolean,
     val author_premium: Boolean,
-
     val can_mod_post: Boolean,
-
     val contest_mode: Boolean,
     val created: Int,
     val created_utc: Long,
@@ -44,10 +48,9 @@ data class PostInfo(
     val downs: Int,
     val edited: Boolean,
     val gilded: Int,
-
     val hidden: Boolean,
     val hide_score: Boolean,
-    val id: String,
+    @ColumnInfo(name = "post_info_id") val id: String,
     val is_crosspostable: Boolean,
     val is_meta: Boolean,
     val is_original_content: Boolean,
@@ -55,7 +58,6 @@ data class PostInfo(
     val is_robot_indexable: Boolean,
     val is_self: Boolean,
     val is_video: Boolean,
-
     val link_flair_text_color: String,
     val link_flair_type: String,
     val locked: Boolean,

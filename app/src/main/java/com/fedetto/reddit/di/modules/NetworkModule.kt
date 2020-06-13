@@ -1,6 +1,7 @@
 package com.fedetto.reddit.di.modules
 
 
+import com.facebook.stetho.okhttp3.StethoInterceptor
 import com.fedetto.reddit.di.qualifiers.BasicAuthClient
 import com.fedetto.reddit.di.qualifiers.OAuthClient
 import com.fedetto.reddit.di.scopes.AppScope
@@ -38,6 +39,7 @@ class NetworkModule {
     ): OkHttpClient {
         return builder.apply {
             addInterceptor(OAuthInterceptor())
+            addNetworkInterceptor(StethoInterceptor())
         }.build()
     }
 
@@ -50,6 +52,7 @@ class NetworkModule {
 
         return builder.apply {
             addInterceptor(BasicAuthInterceptor())
+            addNetworkInterceptor(StethoInterceptor())
         }.build()
     }
 
@@ -58,7 +61,6 @@ class NetworkModule {
         return OkHttpClient.Builder().apply {
             readTimeout(5, TimeUnit.SECONDS)
             connectTimeout(5, TimeUnit.SECONDS)
-            addInterceptor(loggingInterceptor)
         }
     }
 
