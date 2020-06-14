@@ -26,6 +26,7 @@ class RedditRepository @Inject constructor(
             }
             .onErrorResumeNext {
                 Single.just(PostsResponse(Data("", "", postsDao.getAllPosts(), 0, ""), ""))
+
             }
     }
 

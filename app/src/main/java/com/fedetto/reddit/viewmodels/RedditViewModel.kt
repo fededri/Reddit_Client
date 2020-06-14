@@ -1,21 +1,28 @@
 package com.fedetto.reddit.viewmodels
 
+import android.util.Log
 import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.fedetto.reddit.PostBindingStrategy
 import com.fedetto.reddit.controllers.RedditController
 import com.fedetto.reddit.models.Post
 import com.fedetto.reddit.models.RedditState
 import com.fedetto.reddit.models.ViewAction
 import com.fedetto.reddit.views.PostItem
-import io.reactivex.Observable
+import io.reactivex.Flowable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.Flowables
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.schedulers.Schedulers
-import io.reactivex.subjects.PublishSubject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class RedditViewModel @Inject constructor(
@@ -28,15 +35,15 @@ class RedditViewModel @Inject constructor(
     }
     private val compositeDisposable by lazy { CompositeDisposable() }
     private val pageSize = 10
-    private val viewActions = PublishSubject.create<ViewAction>()
+    private val viewActions = BroadcastChannel<ViewAction>(1)
 
 
     fun observeState(): LiveData<RedditState> {
         return state
     }
 
-    fun getViewActionsObservable(): Observable<ViewAction> {
-        return viewActions.hide()
+    fun getViewActionsObservable(): ReceiveChannel<ViewAction> {
+        return viewActions.openSubscription()
     }
 
 
@@ -49,9 +56,12 @@ class RedditViewModel @Inject constructor(
     }
 
     private fun observeViewActions() {
-        compositeDisposable += viewActions.subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(this::processViewAction, Throwable::printStackTrace)
+        viewModelScope.launch(Dispatchers.Main) {
+            for (action in viewActions.openSubscription()) { //this subscription should be cancelled at some time
+                Log.i("ViewModel", "received action: $action")
+                processViewAction(action)
+            }
+        }
     }
 
     private fun processViewAction(action: ViewAction) {

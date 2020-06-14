@@ -10,10 +10,14 @@ import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import com.xwray.groupie.kotlinandroidextensions.Item
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.post_item.*
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.runBlocking
 
 class PostItem(
     private val post: Post,
-    private val viewActions: PublishSubject<ViewAction>,
+    private val viewActions: BroadcastChannel<ViewAction>,
     private val bindingStrategy: PostBindingStrategy
 ) : Item() {
 
@@ -32,11 +36,15 @@ class PostItem(
             bindingStrategy.bindThumbnail(post, imageVieThumbnail)
 
             buttonDismiss.setOnClickListener {
-                viewActions.onNext(ViewAction.DismissPost(this@PostItem))
+                runBlocking {
+                    viewActions.send(ViewAction.DismissPost(this@PostItem))
+                }
             }
 
             root.setOnClickListener {
-                viewActions.onNext(ViewAction.SelectPost(post))
+                runBlocking {
+                    viewActions.send(ViewAction.SelectPost(post))
+                }
             }
 
             //TODO read status

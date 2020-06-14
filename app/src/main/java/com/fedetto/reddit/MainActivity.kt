@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.lifecycleScope
 import com.fedetto.reddit.di.factory.ViewModelFactory
 import com.fedetto.reddit.models.Post
 import com.fedetto.reddit.models.RedditState
@@ -18,6 +19,10 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
@@ -30,6 +35,7 @@ class MainActivity : AppCompatActivity() {
     private var isLandscape = false
 
     private val compositeDisposable = CompositeDisposable()
+    private var receiveChannel: ReceiveChannel<ViewAction>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,14 +53,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun observeViewActions() {
-        compositeDisposable += viewModel.getViewActionsObservable()
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeOn(Schedulers.io())
-            .subscribe({
-                when (it) {
-                    is ViewAction.SelectPost -> onPostSelected(it.post)
+        lifecycleScope.launch {
+            receiveChannel = viewModel.getViewActionsObservable()
+            receiveChannel?.let {
+                for (action in it) {
+                    when (action) {
+                        is ViewAction.SelectPost -> onPostSelected(action.post)
+                    }
                 }
-            }, Throwable::printStackTrace)
+            }
+
+        }
     }
 
     private fun onPostSelected(post: Post) {
@@ -68,6 +77,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         compositeDisposable.clear()
+        receiveChannel?.cancel()
         super.onStop()
     }
 }
