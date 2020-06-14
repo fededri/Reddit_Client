@@ -12,19 +12,12 @@ import com.fedetto.reddit.models.Post
 import com.fedetto.reddit.models.RedditState
 import com.fedetto.reddit.models.ViewAction
 import com.fedetto.reddit.views.PostItem
-import io.reactivex.Flowable
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.rxkotlin.Flowables
-import io.reactivex.rxkotlin.plusAssign
-import io.reactivex.schedulers.Schedulers
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@ExperimentalCoroutinesApi
 class RedditViewModel @Inject constructor(
     private val controller: RedditController,
     private val bindingStrategy: PostBindingStrategy
@@ -36,6 +29,7 @@ class RedditViewModel @Inject constructor(
     private val compositeDisposable by lazy { CompositeDisposable() }
     private val pageSize = 10
     private val viewActions = BroadcastChannel<ViewAction>(1)
+    private val receiveChannels = mutableListOf<ReceiveChannel<*>>()
 
 
     fun observeState(): LiveData<RedditState> {
@@ -55,9 +49,12 @@ class RedditViewModel @Inject constructor(
         }
     }
 
+
     private fun observeViewActions() {
         viewModelScope.launch(Dispatchers.Main) {
-            for (action in viewActions.openSubscription()) { //this subscription should be cancelled at some time
+            val subscription = viewActions.openSubscription()
+            receiveChannels.add(subscription)
+            for (action in subscription) {
                 Log.i("ViewModel", "received action: $action")
                 processViewAction(action)
             }
@@ -72,10 +69,9 @@ class RedditViewModel @Inject constructor(
     }
 
     private fun fetchPosts() {
-        compositeDisposable += controller.getPosts(pageSize)
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeOn(Schedulers.io())
-            .doOnEvent { t1, t2 ->
+        CoroutineScope(Dispatchers.IO).launch {
+            val posts = controller.getPosts(pageSize)
+            viewModelScope.launch {
                 emitNewState(
                     getState().copy(
                         loading = false,
@@ -84,8 +80,9 @@ class RedditViewModel @Inject constructor(
                         isRefreshing = false
                     )
                 )
+                onSuccessResponse(posts)
             }
-            .subscribe(this::onSuccessResponse, this::onErrorResponse)
+        }
     }
 
 
@@ -120,6 +117,9 @@ class RedditViewModel @Inject constructor(
 
     override fun onCleared() {
         compositeDisposable.clear()
+        receiveChannels.forEach {
+            it.cancel()
+        }
         super.onCleared()
     }
 
@@ -130,18 +130,20 @@ class RedditViewModel @Inject constructor(
 
     fun loadMore() {
         emitNewState(getState().copy(loading = true, isWaitingServiceResponse = true))
-        compositeDisposable += controller.loadMore(pageSize)
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeOn(Schedulers.io())
-            .doOnEvent { t1, t2 ->
+        CoroutineScope(Dispatchers.IO).launch {
+            val posts = controller.loadMore(pageSize)
+            viewModelScope.launch {
+                val threadName = Thread.currentThread().name
+                Log.i("Controller", "running on thread $threadName")
                 emitNewState(
                     getState().copy(
                         loading = false,
                         isWaitingServiceResponse = false
                     )
                 )
+                updateNewPosts(posts)
             }
-            .subscribe(this::updateNewPosts, this::onErrorResponse)
+        }
     }
 
     private fun updateNewPosts(newPosts: List<Post>) {

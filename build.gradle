@@ -48,7 +48,7 @@ ext {
     groupieVersion = "2.7.0"
 
     //Retrofit
-    retrofitVersion = "2.4.0"
+    retrofitVersion = "2.6.0"
     gsonVersion = "2.8.1"
     okhttpVersion = "3.5.0"
 

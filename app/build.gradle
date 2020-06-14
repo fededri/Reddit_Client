@@ -67,12 +67,6 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-runtime:$rootProject.archVersion"
     implementation "android.arch.lifecycle:common-java8:$rootProject.archVersion"
 
-
-    //RxJava
-    implementation "io.reactivex.rxjava2:rxjava:$rootProject.rxJavaVersion"
-    implementation "io.reactivex.rxjava2:rxandroid:$rootProject.rxAndroidVersion"
-    implementation "io.reactivex.rxjava2:rxkotlin:$rootProject.rxKotlinVersion"
-
     //Support Libraries
     implementation "androidx.recyclerview:recyclerview:$rootProject.supportVersion"
     implementation "androidx.cardview:cardview:$rootProject.supportVersion"

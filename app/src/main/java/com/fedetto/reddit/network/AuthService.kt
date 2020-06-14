@@ -8,5 +8,5 @@ interface AuthService {
 
     @FormUrlEncoded
     @POST("access_token")
-    fun getAuthToken(@Field("grant_type") grantType: String, @Field("device_id") device: String): Single<AuthTokenResponse>
+    suspend fun getAuthToken(@Field("grant_type") grantType: String, @Field("device_id") device: String): AuthTokenResponse
 }
