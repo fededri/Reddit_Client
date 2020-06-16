@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import com.fedetto.reddit.PostBindingStrategy
 import com.fedetto.reddit.di.PostBindingStrategyConcrete
 import com.fedetto.reddit.di.scopes.ViewModelKey
+import com.fedetto.reddit.interfaces.DefaultDispatcherProvider
+import com.fedetto.reddit.interfaces.DispatcherProvider
 import com.fedetto.reddit.viewmodels.RedditViewModel
 import dagger.Binds
 import dagger.Module
@@ -25,4 +27,7 @@ abstract class AppModule {
 
     @Binds
     abstract fun bindingStrategy(strategyConcrete: PostBindingStrategyConcrete): PostBindingStrategy
+
+    @Binds
+    abstract fun dispatchersProvider(dispatcherProvider: DefaultDispatcherProvider) : DispatcherProvider
 }

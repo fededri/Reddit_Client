@@ -2,12 +2,14 @@ package com.fedetto.reddit.viewmodels
 
 import android.util.Log
 import androidx.annotation.MainThread
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fedetto.reddit.PostBindingStrategy
 import com.fedetto.reddit.controllers.RedditController
+import com.fedetto.reddit.interfaces.DispatcherProvider
 import com.fedetto.reddit.models.Post
 import com.fedetto.reddit.models.RedditState
 import com.fedetto.reddit.models.ViewAction
@@ -20,15 +22,15 @@ import javax.inject.Inject
 @ExperimentalCoroutinesApi
 class RedditViewModel @Inject constructor(
     private val controller: RedditController,
-    private val bindingStrategy: PostBindingStrategy
+    private val bindingStrategy: PostBindingStrategy,
+    private val dispatcherProvider: DispatcherProvider
 ) : ViewModel() {
 
-    private val state = MutableLiveData<RedditState>().apply {
-        value = RedditState()
-    }
+    private val state = MutableLiveData<RedditState>()
     private val compositeDisposable by lazy { CompositeDisposable() }
     private val pageSize = 10
-    private val viewActions = BroadcastChannel<ViewAction>(1)
+    @VisibleForTesting
+    val viewActions = BroadcastChannel<ViewAction>(1)
     private val receiveChannels = mutableListOf<ReceiveChannel<*>>()
 
 
@@ -42,6 +44,7 @@ class RedditViewModel @Inject constructor(
 
 
     fun initialize() {
+        state.value = RedditState()
         if (shouldInitialize()) {
             observeViewActions()
             emitNewState(getState().copy(isWaitingServiceResponse = true, loading = true))
@@ -49,13 +52,11 @@ class RedditViewModel @Inject constructor(
         }
     }
 
-
     private fun observeViewActions() {
-        viewModelScope.launch(Dispatchers.Main) {
+        viewModelScope.launch(dispatcherProvider.main()) {
             val subscription = viewActions.openSubscription()
             receiveChannels.add(subscription)
             for (action in subscription) {
-                Log.i("ViewModel", "received action: $action")
                 processViewAction(action)
             }
         }
@@ -69,7 +70,7 @@ class RedditViewModel @Inject constructor(
     }
 
     private fun fetchPosts() {
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(dispatcherProvider.io()).launch {
             val posts = controller.getPosts(pageSize)
             viewModelScope.launch {
                 emitNewState(
@@ -130,7 +131,7 @@ class RedditViewModel @Inject constructor(
 
     fun loadMore() {
         emitNewState(getState().copy(loading = true, isWaitingServiceResponse = true))
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(dispatcherProvider.io()).launch {
             val posts = controller.loadMore(pageSize)
             viewModelScope.launch {
                 val threadName = Thread.currentThread().name
@@ -161,12 +162,15 @@ class RedditViewModel @Inject constructor(
         )
     }
 
-    private fun onDismissPostClick(item: PostItem) {
-        val currentItems = getState().posts?.toMutableList()
-        currentItems?.remove(item)
+    private fun onDismissPostClick(post: Post) {
+        val newItems = getState().posts?.filter {
+            val item = it as? PostItem
+            item?.post != post
+        }
+
         emitNewState(
             getState().copy(
-                posts = currentItems
+                posts = newItems
             )
         )
     }

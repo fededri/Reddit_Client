@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.runBlocking
 
 class PostItem(
-    private val post: Post,
+    val post: Post,
     private val viewActions: BroadcastChannel<ViewAction>,
     private val bindingStrategy: PostBindingStrategy
 ) : Item() {
@@ -37,7 +37,7 @@ class PostItem(
 
             buttonDismiss.setOnClickListener {
                 runBlocking {
-                    viewActions.send(ViewAction.DismissPost(this@PostItem))
+                    viewActions.send(ViewAction.DismissPost(post))
                 }
             }
 
