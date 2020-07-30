@@ -47,6 +47,9 @@ ext {
     //Groupie
     groupieVersion = "2.7.0"
 
+    //Epoxy
+    epoxyVersion = "3.11.0"
+
     //Retrofit
     retrofitVersion = "2.4.0"
     gsonVersion = "2.8.1"

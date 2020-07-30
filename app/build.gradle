@@ -29,6 +29,10 @@ android {
     }
 }
 
+kapt {
+    correctErrorTypes = true
+}
+
 dependencies {
     def room_version = "2.2.5"
 
@@ -49,9 +53,9 @@ dependencies {
     api "com.google.dagger:dagger-android-support:$rootProject.dagger"
     kapt "com.google.dagger:dagger-android-processor:$rootProject.dagger"
 
-    //Groupie
-    implementation "com.xwray:groupie:$rootProject.groupieVersion"
-    implementation "com.xwray:groupie-kotlin-android-extensions:$rootProject.groupieVersion"
+    //Epoxy
+    implementation "com.airbnb.android:epoxy:$rootProject.epoxyVersion"
+    kapt "com.airbnb.android:epoxy-processor:$rootProject.epoxyVersion"
 
     //Network
     implementation "com.squareup.retrofit2:retrofit:$rootProject.retrofitVersion"

@@ -10,6 +10,7 @@ import com.fedetto.reddit.models.Post
 import com.fedetto.reddit.models.RedditState
 import com.fedetto.reddit.models.ViewAction
 import com.fedetto.reddit.views.PostItem
+import com.fedetto.reddit.views.PostItem_
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -86,7 +87,7 @@ class RedditViewModel @Inject constructor(
 
     private fun onSuccessResponse(posts: List<Post>) {
         val items = posts.map {
-            PostItem(it, viewActions, bindingStrategy)
+            PostItem_().viewActions(viewActions).bindingStrategy(bindingStrategy).post(it).id(it.info.id)
         }
         emitNewStateAsync(getState().copy(posts = items))
     }
@@ -136,8 +137,8 @@ class RedditViewModel @Inject constructor(
 
     private fun updateNewPosts(newPosts: List<Post>) {
         val newItems = newPosts.map {
-            PostItem(it, viewActions, bindingStrategy)
-        }
+            PostItem_().viewActions(viewActions).bindingStrategy(bindingStrategy).post(it).id(it.info.id)
+        }.toSet()
 
         val allItems = getState().posts?.toMutableList()?.apply {
             addAll(newItems)

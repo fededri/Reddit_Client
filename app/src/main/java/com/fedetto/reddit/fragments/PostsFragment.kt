@@ -19,18 +19,17 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.fedetto.reddit.R
+import com.fedetto.reddit.controllers.EpoxyPostsController
 import com.fedetto.reddit.di.factory.ViewModelFactory
 import com.fedetto.reddit.models.RedditState
 import com.fedetto.reddit.utils.EndlessRecyclerViewScrollListener
 import com.fedetto.reddit.viewmodels.RedditViewModel
-import com.xwray.groupie.GroupAdapter
-import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import dagger.android.support.AndroidSupportInjection
 import javax.inject.Inject
 
 class PostsFragment : Fragment() {
 
-    private val groupAdapter by lazy { GroupAdapter<GroupieViewHolder>() }
+    private val epoxyController by lazy { EpoxyPostsController() }
     private val recyclerView by lazy { view?.findViewById<RecyclerView>(R.id.recyclerView) }
     private val progressBar by lazy { view?.findViewById<ProgressBar>(R.id.progressBar) }
     private val pullToRefresh by lazy { view?.findViewById<SwipeRefreshLayout>(R.id.pullToRefresh) }
@@ -71,7 +70,7 @@ class PostsFragment : Fragment() {
 
 
     private fun initViews() {
-        recyclerView?.adapter = groupAdapter
+        recyclerView?.adapter = epoxyController.adapter
         val layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         recyclerView?.layoutManager = layoutManager
@@ -97,22 +96,8 @@ class PostsFragment : Fragment() {
 
     private fun renderState(state: RedditState) {
         state.posts?.let {
-            if (groupAdapter.itemCount > 0 && state.posts.isEmpty()) {
-                playDismissAnimation {
-                    recyclerView?.apply {
-                        visibility = View.INVISIBLE
-                        scaleY = 1f
-                        alpha = 1f
-                        scaleX = 1f
-                        rotation = 0f
-                    }
-                    groupAdapter.update(it)
-
-                }
-            } else {
-                recyclerView?.visibility = View.VISIBLE
-                groupAdapter.update(it)
-            }
+            recyclerView?.visibility = View.VISIBLE
+            epoxyController.setData(it)
         }
 
         progressBar?.visibility = if (state.loading) View.VISIBLE else View.GONE

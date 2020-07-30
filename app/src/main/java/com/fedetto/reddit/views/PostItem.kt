@@ -1,30 +1,33 @@
 package com.fedetto.reddit.views
 
-import android.text.format.DateUtils
-import com.bumptech.glide.Glide
+
+import android.view.View
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.TextView
+import com.airbnb.epoxy.EpoxyAttribute
+import com.airbnb.epoxy.EpoxyHolder
+import com.airbnb.epoxy.EpoxyModelClass
+import com.airbnb.epoxy.EpoxyModelWithHolder
 import com.fedetto.reddit.PostBindingStrategy
 import com.fedetto.reddit.R
 import com.fedetto.reddit.models.Post
 import com.fedetto.reddit.models.ViewAction
-import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
-import com.xwray.groupie.kotlinandroidextensions.Item
 import io.reactivex.subjects.PublishSubject
-import kotlinx.android.synthetic.main.post_item.*
 
-class PostItem(
-    private val post: Post,
-    private val viewActions: PublishSubject<ViewAction>,
-    private val bindingStrategy: PostBindingStrategy
-) : Item() {
+@EpoxyModelClass(layout = R.layout.post_item)
+abstract class PostItem : EpoxyModelWithHolder<PostItem.Holder>() {
 
+    @EpoxyAttribute
+    lateinit var post: Post
+    @EpoxyAttribute
+    lateinit var viewActions: PublishSubject<ViewAction>
+    @EpoxyAttribute
+    lateinit var bindingStrategy: PostBindingStrategy
 
-    override fun getLayout(): Int {
-        return R.layout.post_item
-    }
-
-    override fun bind(viewHolder: GroupieViewHolder, position: Int) {
+    override fun bind(holder: Holder) {
         val info = post.info
-        viewHolder.apply {
+        holder.apply {
             textViewTitle.text = info.title
             bindingStrategy.bindAuthor(post, textViewAuthor)
             textViewCommentsNumber.text = "${info.num_comments} comments"
@@ -35,12 +38,33 @@ class PostItem(
                 viewActions.onNext(ViewAction.DismissPost(this@PostItem))
             }
 
-            root.setOnClickListener {
+            rootView.setOnClickListener {
                 viewActions.onNext(ViewAction.SelectPost(post))
             }
 
             //TODO read status
             bindingStrategy.bindCreationTime(post, textViewTime)
+        }
+
+    }
+
+    class Holder : EpoxyHolder() {
+        lateinit var textViewTitle: TextView
+        lateinit var textViewCommentsNumber: TextView
+        lateinit var textViewAuthor: TextView
+        lateinit var textViewTime: TextView
+        lateinit var imageVieThumbnail: ImageView
+        lateinit var buttonDismiss: Button
+        lateinit var rootView: View
+
+        override fun bindView(itemView: View) {
+            textViewTitle = itemView.findViewById(R.id.textViewTitle)
+            textViewCommentsNumber = itemView.findViewById(R.id.textViewCommentsNumber)
+            imageVieThumbnail = itemView.findViewById(R.id.imageVieThumbnail)
+            textViewTime = itemView.findViewById(R.id.textViewTime)
+            textViewAuthor = itemView.findViewById(R.id.textViewAuthor)
+            buttonDismiss = itemView.findViewById(R.id.buttonDismiss)
+            rootView = itemView
         }
     }
 }
