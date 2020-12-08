@@ -15,6 +15,7 @@ import android.widget.ProgressBar
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -26,6 +27,7 @@ import com.fedetto.reddit.viewmodels.RedditViewModel
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import dagger.android.support.AndroidSupportInjection
+import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
 
 class PostsFragment : Fragment() {
@@ -49,9 +51,11 @@ class PostsFragment : Fragment() {
 
         viewModel =
             ViewModelProviders.of(requireActivity(), viewModelFactory)[RedditViewModel::class.java]
-        viewModel.observeState().observe(requireActivity(), Observer {
-            renderState(it)
-        })
+        lifecycleScope.launchWhenResumed {
+            viewModel.observeState().collect {
+                renderState(it)
+            }
+        }
 
         viewModel.initialize()
 

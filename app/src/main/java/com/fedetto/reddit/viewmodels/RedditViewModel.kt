@@ -17,24 +17,27 @@ import com.fedetto.reddit.views.PostItem
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
 class RedditViewModel @Inject constructor(
-    private val controller: RedditController,
-    private val bindingStrategy: PostBindingStrategy,
-    private val dispatcherProvider: DispatcherProvider
+        private val controller: RedditController,
+        private val bindingStrategy: PostBindingStrategy,
+        private val dispatcherProvider: DispatcherProvider
 ) : ViewModel() {
 
-    private val state = MutableLiveData<RedditState>()
     private val compositeDisposable by lazy { CompositeDisposable() }
     private val pageSize = 10
+
     @VisibleForTesting
     val viewActions = BroadcastChannel<ViewAction>(1)
     private val receiveChannels = mutableListOf<ReceiveChannel<*>>()
+    private val state = MutableStateFlow(RedditState())
 
 
-    fun observeState(): LiveData<RedditState> {
+    fun observeState(): StateFlow<RedditState> {
         return state
     }
 
@@ -44,7 +47,6 @@ class RedditViewModel @Inject constructor(
 
 
     fun initialize() {
-        state.value = RedditState()
         if (shouldInitialize()) {
             observeViewActions()
             emitNewState(getState().copy(isWaitingServiceResponse = true, loading = true))
@@ -71,24 +73,25 @@ class RedditViewModel @Inject constructor(
 
     private fun fetchPosts() {
         CoroutineScope(dispatcherProvider.io()).launch {
-            val posts = controller.getPosts(pageSize)
-            viewModelScope.launch {
-                emitNewState(
-                    getState().copy(
-                        loading = false,
-                        isWaitingServiceResponse = false,
-                        wasFirstRequestCalled = true,
-                        isRefreshing = false
-                    )
-                )
-                onSuccessResponse(posts)
+            val posts = controller.getPosts(pageSize).map {
+                PostItem(it, viewActions, bindingStrategy)
             }
+
+            val newState = getState().copy(
+                    loading = false,
+                    isWaitingServiceResponse = false,
+                    wasFirstRequestCalled = true,
+                    isRefreshing = false,
+                    posts = posts
+            )
+            emitNewState(newState)
         }
     }
 
 
     private fun shouldInitialize(): Boolean {
-        return state.value?.isWaitingServiceResponse == false && state.value?.wasFirstRequestCalled == false
+        //no need of checking null state
+        return !state.value.isWaitingServiceResponse && !state.value.wasFirstRequestCalled
     }
 
 
@@ -104,17 +107,15 @@ class RedditViewModel @Inject constructor(
         throwable.printStackTrace()
     }
 
-    @MainThread
     private fun emitNewState(newState: RedditState) {
         state.value = newState
     }
 
     private fun emitNewStateAsync(newState: RedditState) {
-        state.postValue(newState)
+        state.value = newState
     }
 
     private fun getState() = state.value ?: RedditState()
-
 
     override fun onCleared() {
         compositeDisposable.clear()
@@ -137,10 +138,10 @@ class RedditViewModel @Inject constructor(
                 val threadName = Thread.currentThread().name
                 Log.i("Controller", "running on thread $threadName")
                 emitNewState(
-                    getState().copy(
-                        loading = false,
-                        isWaitingServiceResponse = false
-                    )
+                        getState().copy(
+                                loading = false,
+                                isWaitingServiceResponse = false
+                        )
                 )
                 updateNewPosts(posts)
             }
@@ -156,9 +157,9 @@ class RedditViewModel @Inject constructor(
             addAll(newItems)
         }
         emitNewStateAsync(
-            getState().copy(
-                posts = allItems
-            )
+                getState().copy(
+                        posts = allItems
+                )
         )
     }
 
@@ -169,15 +170,15 @@ class RedditViewModel @Inject constructor(
         }
 
         emitNewState(
-            getState().copy(
-                posts = newItems
-            )
+                getState().copy(
+                        posts = newItems
+                )
         )
     }
 
     fun dismissAll() {
         emitNewState(
-            getState().copy(posts = listOf())
+                getState().copy(posts = listOf())
         )
     }
 

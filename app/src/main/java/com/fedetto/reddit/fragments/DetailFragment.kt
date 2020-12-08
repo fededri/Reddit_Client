@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.lifecycleScope
 import com.fedetto.reddit.PostBindingStrategy
 import com.fedetto.reddit.R
 import com.fedetto.reddit.di.factory.ViewModelFactory
@@ -15,6 +16,7 @@ import com.fedetto.reddit.models.RedditState
 import com.fedetto.reddit.viewmodels.RedditViewModel
 import dagger.android.support.AndroidSupportInjection
 import kotlinx.android.synthetic.main.fragment_detail.*
+import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
 
 class DetailFragment : Fragment() {
@@ -37,10 +39,11 @@ class DetailFragment : Fragment() {
 
         viewModel =
             ViewModelProviders.of(requireActivity(), viewModelFactory)[RedditViewModel::class.java]
-
-        viewModel.observeState().observe(requireActivity(), Observer {
-            renderState(it)
-        })
+        lifecycleScope.launchWhenResumed {
+            viewModel.observeState().collect {
+                renderState(it)
+            }
+        }
         return view
     }
 
