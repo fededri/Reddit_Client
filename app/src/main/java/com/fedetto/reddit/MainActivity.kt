@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
 import androidx.lifecycle.lifecycleScope
+import com.fedetto.reddit.arch.RedditEvent
 import com.fedetto.reddit.di.factory.ViewModelFactory
 import com.fedetto.reddit.models.Post
 import com.fedetto.reddit.models.ViewAction
@@ -13,7 +14,7 @@ import com.fedetto.reddit.viewmodels.RedditViewModel
 import dagger.android.AndroidInjection
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
@@ -31,8 +32,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        lifecycleScope.launchWhenResumed {
+            viewModel.observeEvents().collect {
+                processEvent(it)
+            }
+        }
     }
-
 
     override fun onResume() {
         AndroidInjection.inject(this)
@@ -40,20 +45,11 @@ class MainActivity : AppCompatActivity() {
 
         viewModel = ViewModelProviders.of(this, viewModelFactory)[RedditViewModel::class.java]
         isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-        observeViewActions()
     }
 
-    private fun observeViewActions() {
-        lifecycleScope.launch {
-            receiveChannel = viewModel.getViewActionsObservable()
-            receiveChannel?.let {
-                for (action in it) {
-                    when (action) {
-                        is ViewAction.SelectPost -> onPostSelected(action.post)
-                    }
-                }
-            }
-
+    private fun processEvent(event: RedditEvent) {
+        when (event) {
+            is RedditEvent.OnPostSelected -> onPostSelected(event.post)
         }
     }
 

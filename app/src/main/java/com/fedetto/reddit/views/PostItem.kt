@@ -1,23 +1,19 @@
 package com.fedetto.reddit.views
 
-import android.text.format.DateUtils
-import com.bumptech.glide.Glide
+import com.fedetto.arch.interfaces.ActionsDispatcher
 import com.fedetto.reddit.PostBindingStrategy
 import com.fedetto.reddit.R
+import com.fedetto.reddit.arch.RedditAction
 import com.fedetto.reddit.models.Post
 import com.fedetto.reddit.models.ViewAction
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import com.xwray.groupie.kotlinandroidextensions.Item
-import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.post_item.*
-import kotlinx.coroutines.channels.BroadcastChannel
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.runBlocking
 
 class PostItem(
     val post: Post,
-    private val viewActions: BroadcastChannel<ViewAction>,
+    private val actionsDispatcher: ActionsDispatcher<RedditAction>?,
     private val bindingStrategy: PostBindingStrategy
 ) : Item() {
 
@@ -37,13 +33,13 @@ class PostItem(
 
             buttonDismiss.setOnClickListener {
                 runBlocking {
-                    viewActions.send(ViewAction.DismissPost(post))
+                    actionsDispatcher?.action(RedditAction.DismissPost(post))
                 }
             }
 
             root.setOnClickListener {
                 runBlocking {
-                    viewActions.send(ViewAction.SelectPost(post))
+                    actionsDispatcher?.action(RedditAction.SelectPost(post))
                 }
             }
 
