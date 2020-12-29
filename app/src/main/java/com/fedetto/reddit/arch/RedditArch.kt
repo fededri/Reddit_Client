@@ -38,6 +38,9 @@ sealed class RedditSideEffect(
 
     data class LoadPosts(val actionsDispatcher: ActionsDispatcher<RedditAction>) :
         RedditSideEffect()
+
+    data class LoadMorePosts(val actionsDispatcher: ActionsDispatcher<RedditAction>) :
+        RedditSideEffect()
 }
 
 sealed class RedditEvent {
@@ -55,7 +58,16 @@ class RedditProcessor @Inject constructor(
     override suspend fun dispatchSideEffect(effect: RedditSideEffect): RedditAction {
         return when (effect) {
             is RedditSideEffect.LoadPosts -> loadPosts(effect.actionsDispatcher)
+            is RedditSideEffect.LoadMorePosts -> loadMorePosts(effect.actionsDispatcher)
         }
+    }
+
+
+    private suspend fun loadMorePosts(actionsDispatcher: ActionsDispatcher<RedditAction>): RedditAction {
+        val posts = controller.loadMore(pageSize).map {
+            PostItem(it, actionsDispatcher, bindingStrategy)
+        }
+        return RedditAction.ShowPosts(posts)
     }
 
     private suspend fun loadPosts(actionsDispatcher: ActionsDispatcher<RedditAction>): RedditAction {
@@ -100,7 +112,7 @@ class RedditUpdater @Inject constructor() :
     ): NextResult {
         return Next.StateWithSideEffects(
             state.copy(loading = true),
-            setOf(RedditSideEffect.LoadPosts(actionsDispatcher))
+            setOf(RedditSideEffect.LoadMorePosts(actionsDispatcher))
         )
     }
 
