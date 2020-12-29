@@ -92,34 +92,20 @@ class PostsFragment : Fragment() {
         })
 
         pullToRefresh?.setOnRefreshListener {
-            viewModel.action(RedditAction.Refresh)
+            viewModel.action(RedditAction.Refresh(viewModel))
         }
 
         buttonDismissAll?.setOnClickListener {
             viewModel.action(RedditAction.DismissAll)
         }
-
     }
-
 
     private fun renderState(state: RedditState) {
         state.posts?.let {
-            if (groupAdapter.itemCount > 0 && state.posts.isEmpty()) {
-                playDismissAnimation {
-                    recyclerView?.apply {
-                        visibility = View.INVISIBLE
-                        scaleY = 1f
-                        alpha = 1f
-                        scaleX = 1f
-                        rotation = 0f
-                    }
-                    groupAdapter.update(it)
 
-                }
-            } else {
-                recyclerView?.visibility = View.VISIBLE
-                groupAdapter.update(it)
-            }
+            recyclerView?.visibility = View.VISIBLE
+            groupAdapter.update(it)
+
         }
 
         progressBar?.visibility = if (state.loading) View.VISIBLE else View.GONE

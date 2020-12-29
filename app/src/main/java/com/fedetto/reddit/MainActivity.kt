@@ -27,7 +27,6 @@ class MainActivity : AppCompatActivity() {
     private var isLandscape = false
 
     private val compositeDisposable = CompositeDisposable()
-    private var receiveChannel: ReceiveChannel<ViewAction>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,7 +63,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         compositeDisposable.clear()
-        receiveChannel?.cancel()
         super.onStop()
     }
 }
