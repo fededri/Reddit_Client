@@ -15,8 +15,6 @@ class RedditRepository @Inject constructor(
     private val authService: AuthService,
     private val postsDao: PostDao
 ) {
-
-
     //Coroutine version
     suspend fun getPosts(limit: Int, after: String? = null): PostsResponse {
         return try {

@@ -1,19 +1,13 @@
 package com.fedetto.reddit.fragments
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
 import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.Button
 import android.widget.ProgressBar
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -110,26 +104,6 @@ class PostsFragment : Fragment() {
 
         progressBar?.visibility = if (state.loading) View.VISIBLE else View.GONE
         pullToRefresh?.isRefreshing = state.isRefreshing
-    }
-
-    private inline fun playDismissAnimation(crossinline callback: () -> Unit) {
-        val scaleY = ObjectAnimator.ofFloat(recyclerView, View.SCALE_Y, 1f, 0f)
-        val scaleX = ObjectAnimator.ofFloat(recyclerView, View.SCALE_X, 1f, 0f)
-        val rotation = ObjectAnimator.ofFloat(recyclerView, View.ROTATION, 0f, 90f)
-        val alpha = ObjectAnimator.ofFloat(recyclerView, View.ALPHA, 1f, 0f)
-
-        val set = AnimatorSet().apply {
-            interpolator = AccelerateDecelerateInterpolator()
-            duration = 1000
-            playTogether(scaleX, scaleY, rotation, alpha)
-            addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator?) {
-                    callback.invoke()
-                }
-            })
-        }
-
-        set.start()
     }
 
     companion object {
