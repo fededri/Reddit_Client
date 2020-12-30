@@ -1,29 +1,28 @@
 package com.fedetto.reddit.views
 
-import android.text.format.DateUtils
-import com.bumptech.glide.Glide
+import com.fedetto.arch.interfaces.ActionsDispatcher
 import com.fedetto.reddit.PostBindingStrategy
 import com.fedetto.reddit.R
+import com.fedetto.reddit.arch.RedditAction
 import com.fedetto.reddit.models.Post
-import com.fedetto.reddit.models.ViewAction
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import com.xwray.groupie.kotlinandroidextensions.Item
-import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.post_item.*
-import kotlinx.coroutines.channels.BroadcastChannel
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.runBlocking
 
 class PostItem(
     val post: Post,
-    private val viewActions: BroadcastChannel<ViewAction>,
     private val bindingStrategy: PostBindingStrategy
 ) : Item() {
 
 
+    var actionsDispatcher: ActionsDispatcher<RedditAction>? = null
+
     override fun getLayout(): Int {
         return R.layout.post_item
+    }
+
+    override fun getId(): Long {
+        return post.id.toLong()
     }
 
     override fun bind(viewHolder: GroupieViewHolder, position: Int) {
@@ -36,15 +35,12 @@ class PostItem(
             bindingStrategy.bindThumbnail(post, imageVieThumbnail)
 
             buttonDismiss.setOnClickListener {
-                runBlocking {
-                    viewActions.send(ViewAction.DismissPost(post))
-                }
+                actionsDispatcher?.action(RedditAction.DismissPost(post))
+
             }
 
             root.setOnClickListener {
-                runBlocking {
-                    viewActions.send(ViewAction.SelectPost(post))
-                }
+                actionsDispatcher?.action(RedditAction.SelectPost(post))
             }
 
             //TODO read status

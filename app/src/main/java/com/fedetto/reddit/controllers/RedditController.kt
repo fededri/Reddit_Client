@@ -5,6 +5,7 @@ import androidx.annotation.WorkerThread
 import com.fedetto.reddit.Globals
 import com.fedetto.reddit.models.Post
 import com.fedetto.reddit.repositories.RedditRepository
+import java.lang.Exception
 import javax.inject.Inject
 
 class RedditController @Inject constructor(private val repository: RedditRepository) {
@@ -16,13 +17,16 @@ class RedditController @Inject constructor(private val repository: RedditReposit
     }
 
     private suspend fun checkToken(): String {
-        return if (Globals.ACCESS_TOKEN.isNullOrEmpty()) {
-            val token = repository.getAuthToken()
-            Globals.ACCESS_TOKEN = token.accessToken
-            token.accessToken
-
-        } else {
-            Globals.ACCESS_TOKEN.orEmpty()
+        return try {
+            if (Globals.ACCESS_TOKEN.isNullOrEmpty()) {
+                val token = repository.getAuthToken()
+                Globals.ACCESS_TOKEN = token.accessToken
+                token.accessToken
+            } else {
+                Globals.ACCESS_TOKEN.orEmpty()
+            }
+        } catch (e: Exception) {
+            ""
         }
     }
 

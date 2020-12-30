@@ -39,6 +39,7 @@ class DetailFragment : Fragment() {
 
         viewModel =
             ViewModelProviders.of(requireActivity(), viewModelFactory)[RedditViewModel::class.java]
+
         lifecycleScope.launchWhenResumed {
             viewModel.observeState().collect {
                 renderState(it)

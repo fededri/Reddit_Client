@@ -1,8 +1,13 @@
 package com.fedetto.reddit.di.modules
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProviders
+import com.fedetto.arch.interfaces.ActionsDispatcher
 import com.fedetto.reddit.PostBindingStrategy
+import com.fedetto.reddit.arch.EffectsExceptionHandler
+import com.fedetto.reddit.arch.RedditAction
 import com.fedetto.reddit.di.PostBindingStrategyConcrete
+import com.fedetto.reddit.di.factory.ViewModelFactory
 import com.fedetto.reddit.di.scopes.ViewModelKey
 import com.fedetto.reddit.interfaces.DefaultDispatcherProvider
 import com.fedetto.reddit.interfaces.DispatcherProvider
@@ -10,6 +15,7 @@ import com.fedetto.reddit.viewmodels.RedditViewModel
 import dagger.Binds
 import dagger.Module
 import dagger.multibindings.IntoMap
+import kotlinx.coroutines.CoroutineExceptionHandler
 
 @Module(
     includes = [
@@ -29,5 +35,10 @@ abstract class AppModule {
     abstract fun bindingStrategy(strategyConcrete: PostBindingStrategyConcrete): PostBindingStrategy
 
     @Binds
-    abstract fun dispatchersProvider(dispatcherProvider: DefaultDispatcherProvider) : DispatcherProvider
+    abstract fun dispatchersProvider(dispatcherProvider: DefaultDispatcherProvider): DispatcherProvider
+
+    @Binds
+    abstract fun provideEffectsErrorHandler(handler: EffectsExceptionHandler): CoroutineExceptionHandler
+
+
 }

@@ -1,7 +1,6 @@
 package com.fedetto.reddit.network
 
 import com.fedetto.reddit.models.AuthTokenResponse
-import io.reactivex.Single
 import retrofit2.http.*
 
 interface AuthService {
