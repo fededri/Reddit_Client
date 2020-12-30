@@ -9,11 +9,8 @@ import androidx.lifecycle.lifecycleScope
 import com.fedetto.reddit.arch.RedditEvent
 import com.fedetto.reddit.di.factory.ViewModelFactory
 import com.fedetto.reddit.models.Post
-import com.fedetto.reddit.models.ViewAction
 import com.fedetto.reddit.viewmodels.RedditViewModel
 import dagger.android.AndroidInjection
-import io.reactivex.disposables.CompositeDisposable
-import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
 
@@ -25,8 +22,6 @@ class MainActivity : AppCompatActivity() {
     lateinit var viewModelFactory: ViewModelFactory
 
     private var isLandscape = false
-
-    private val compositeDisposable = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,11 +53,5 @@ class MainActivity : AppCompatActivity() {
                 putExtra("post", post)
             })
         }
-    }
-
-
-    override fun onStop() {
-        compositeDisposable.clear()
-        super.onStop()
     }
 }
