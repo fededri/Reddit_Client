@@ -1,8 +1,8 @@
 package com.fedetto.reddit.arch
 
 import com.fedetto.arch.Next
-import com.fedetto.arch.Updater
 import com.fedetto.arch.interfaces.ActionsDispatcher
+import com.fedetto.arch.interfaces.Updater
 import com.fedetto.reddit.models.Post
 import com.fedetto.reddit.models.RedditState
 import com.fedetto.reddit.views.PostItem
@@ -17,18 +17,14 @@ class RedditUpdater @Inject constructor() :
     ): NextResult {
         return when (action) {
             is RedditAction.ShowPosts -> showPosts(currentState, action)
-            is RedditAction.AppInitiated -> Next.StateWithSideEffects(
-                currentState,
-                setOf(RedditSideEffect.LoadPosts(action.actionsDispatcher))
-            )
             is RedditAction.DismissPost -> dismissPost(action.post, currentState)
             is RedditAction.Refresh -> Next.StateWithSideEffects(
                 currentState.copy(posts = emptyList()),
-                setOf(RedditSideEffect.LoadPosts(action.actionsDispatcher))
+                setOf(RedditSideEffect.LoadPosts)
             )
             is RedditAction.SelectPost -> selectPost(action.post, currentState)
             is RedditAction.DismissAll -> dismissAll(currentState)
-            is RedditAction.LoadMorePosts -> loadMorePosts(currentState, action.actionsDispatcher)
+            is RedditAction.LoadMorePosts -> loadMorePosts(currentState)
         }
     }
 
@@ -40,12 +36,11 @@ class RedditUpdater @Inject constructor() :
     }
 
     private fun loadMorePosts(
-        state: RedditState,
-        actionsDispatcher: ActionsDispatcher<RedditAction>
+        state: RedditState
     ): NextResult {
         return Next.StateWithSideEffects(
             state.copy(loading = true),
-            setOf(RedditSideEffect.LoadMorePosts(actionsDispatcher))
+            setOf(RedditSideEffect.LoadMorePosts)
         )
     }
 
@@ -54,8 +49,7 @@ class RedditUpdater @Inject constructor() :
         state: RedditState
     ): NextResult {
         val filteredPosts = state.posts?.filter {
-            val item = it as? PostItem
-            item?.post != post
+            it != post
         }
         return Next.State(state = state.copy(posts = filteredPosts))
     }

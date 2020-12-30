@@ -1,9 +1,13 @@
 package com.fedetto.reddit.di.modules
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProviders
+import com.fedetto.arch.interfaces.ActionsDispatcher
 import com.fedetto.reddit.PostBindingStrategy
 import com.fedetto.reddit.arch.EffectsExceptionHandler
+import com.fedetto.reddit.arch.RedditAction
 import com.fedetto.reddit.di.PostBindingStrategyConcrete
+import com.fedetto.reddit.di.factory.ViewModelFactory
 import com.fedetto.reddit.di.scopes.ViewModelKey
 import com.fedetto.reddit.interfaces.DefaultDispatcherProvider
 import com.fedetto.reddit.interfaces.DispatcherProvider
@@ -35,4 +39,6 @@ abstract class AppModule {
 
     @Binds
     abstract fun provideEffectsErrorHandler(handler: EffectsExceptionHandler): CoroutineExceptionHandler
+
+
 }

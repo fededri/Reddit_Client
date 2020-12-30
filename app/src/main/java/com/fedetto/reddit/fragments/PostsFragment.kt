@@ -13,16 +13,21 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.fedetto.reddit.PostBindingStrategy
 import com.fedetto.reddit.R
 import com.fedetto.reddit.arch.RedditAction
+import com.fedetto.reddit.arch.RenderState
 import com.fedetto.reddit.di.factory.ViewModelFactory
+import com.fedetto.reddit.mapToItems
 import com.fedetto.reddit.models.RedditState
 import com.fedetto.reddit.utils.EndlessRecyclerViewScrollListener
 import com.fedetto.reddit.viewmodels.RedditViewModel
+import com.fedetto.reddit.views.PostItem
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import dagger.android.support.AndroidSupportInjection
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
 import javax.inject.Inject
 
 class PostsFragment : Fragment() {
@@ -37,14 +42,15 @@ class PostsFragment : Fragment() {
     lateinit var viewModel: RedditViewModel
 
     @Inject
+    lateinit var bindingStrategy: PostBindingStrategy
+
+    @Inject
     lateinit var viewModelFactory: ViewModelFactory
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel =
             ViewModelProviders.of(requireActivity(), viewModelFactory)[RedditViewModel::class.java]
-
-        viewModel.action(RedditAction.AppInitiated(viewModel))
     }
 
     override fun onCreateView(
@@ -59,8 +65,10 @@ class PostsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         initViews()
         lifecycleScope.launchWhenResumed {
-            viewModel.observeState().collect {
-                renderState(it)
+            viewModel.observeRenderState().collect {
+                if (it != null) {
+                    renderState(it)
+                }
             }
         }
     }
@@ -81,7 +89,7 @@ class PostsFragment : Fragment() {
         recyclerView?.addOnScrollListener(object :
             EndlessRecyclerViewScrollListener(layoutManager) {
             override fun onLoadMore(currentPage: Int, totalItemCount: Int) {
-                viewModel.action(RedditAction.LoadMorePosts(viewModel))
+                viewModel.action(RedditAction.LoadMorePosts)
             }
         })
 
@@ -94,12 +102,11 @@ class PostsFragment : Fragment() {
         }
     }
 
-    private fun renderState(state: RedditState) {
+    private fun renderState(state: RenderState) {
         state.posts?.let {
-
             recyclerView?.visibility = View.VISIBLE
+            it.forEach { item -> (item as? PostItem)?.actionsDispatcher = viewModel }
             groupAdapter.update(it)
-
         }
 
         progressBar?.visibility = if (state.loading) View.VISIBLE else View.GONE

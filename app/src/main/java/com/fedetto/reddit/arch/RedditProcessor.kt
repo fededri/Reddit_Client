@@ -1,16 +1,12 @@
 package com.fedetto.reddit.arch
 
-import com.fedetto.arch.Processor
-import com.fedetto.arch.interfaces.ActionsDispatcher
+import com.fedetto.arch.interfaces.Processor
 import com.fedetto.reddit.PostBindingStrategy
 import com.fedetto.reddit.controllers.RedditController
-import com.fedetto.reddit.models.Post
-import com.fedetto.reddit.views.PostItem
 import javax.inject.Inject
 
 class RedditProcessor @Inject constructor(
-    private val controller: RedditController,
-    private val bindingStrategy: PostBindingStrategy
+    private val controller: RedditController
 ) :
     Processor<RedditSideEffect, RedditAction> {
 
@@ -18,20 +14,16 @@ class RedditProcessor @Inject constructor(
 
     override suspend fun dispatchSideEffect(effect: RedditSideEffect): RedditAction {
         return when (effect) {
-            is RedditSideEffect.LoadPosts -> loadPosts(effect.actionsDispatcher)
-            is RedditSideEffect.LoadMorePosts -> loadMorePosts(effect.actionsDispatcher)
+            is RedditSideEffect.LoadPosts -> loadPosts()
+            is RedditSideEffect.LoadMorePosts -> loadMorePosts()
         }
     }
 
-    private suspend fun loadMorePosts(actionsDispatcher: ActionsDispatcher<RedditAction>): RedditAction {
-        return RedditAction.ShowPosts(controller.loadMore(pageSize).mapToItems(actionsDispatcher))
+    private suspend fun loadMorePosts(): RedditAction {
+        return RedditAction.ShowPosts(controller.loadMore(pageSize))
     }
 
-    private suspend fun loadPosts(actionsDispatcher: ActionsDispatcher<RedditAction>): RedditAction {
-        return RedditAction.ShowPosts(controller.getPosts(pageSize).mapToItems(actionsDispatcher))
-    }
-
-    private fun List<Post>.mapToItems(actionsDispatcher: ActionsDispatcher<RedditAction>) = map {
-        PostItem(it, actionsDispatcher, bindingStrategy)
+    private suspend fun loadPosts(): RedditAction {
+        return RedditAction.ShowPosts(controller.getPosts(pageSize))
     }
 }

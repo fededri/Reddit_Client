@@ -9,10 +9,12 @@ import javax.inject.Inject
 class RedditViewModel @Inject constructor(
     private val updater: RedditUpdater,
     private val processor: RedditProcessor,
-    private val errorHandler : CoroutineExceptionHandler
-) : ArchViewModel<RedditAction, RedditState, RedditSideEffect, RedditEvent>(
-    updater, RedditState(),
-    processor,
+    private val errorHandler: CoroutineExceptionHandler,
+    private val stateMapper: RedditStateMapper
+) : ArchViewModel<RedditAction, RedditState, RedditSideEffect, RedditEvent, RenderState>(
+    updater, RedditState(), setOf(RedditSideEffect.LoadPosts),
+    stateMapper = stateMapper,
+    processor = processor,
     coroutineExceptionHandler = errorHandler
 ) {
 
